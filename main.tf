@@ -50,7 +50,7 @@ capacity_reservation_specification {
     tags                  = {}
     tags_all              = {}
     throughput            = 125
-    volume_size           = 10
+    volume_size           = 50
     volume_type           = "gp3"
   }
 }

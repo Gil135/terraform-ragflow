@@ -18,11 +18,6 @@ sudo systemctl enable containerd.service
 sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
-# # Instalando o Node
-# sudo curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash -
-# sudo apt-get install -y nodejs
-# # Atualizando versao do NPM
-# sudo npm install -g npm@latest --loglevel=error
 
 # Instalando AWS CLI
   # Pre-requisito (unzip)
@@ -38,11 +33,20 @@ sudo chmod +x /usr/local/bin/docker-compose
 # Instalando pip pipx uv para Python 3
 
 sudo apt install python3-pip -y
-sudo apt install pipx -y
-pipx install uv
+udo snap install astral-uv --classic
+# sudo apt install pipx -y
+# pipx install uv
+
 
 
 
 # Configurando permissão no docker para não ter que ficar usando root
 sudo usermod -aG docker ubuntu
 newgrp docker
+
+
+git clone https://github.com/infiniflow/ragflow.git
+cd ragflow/
+uv run python3 download_deps.py
+docker build -f Dockerfile.deps -t infiniflow/ragflow_deps .
+docker build -f Dockerfile -t infiniflow/ragflow:nightly .
