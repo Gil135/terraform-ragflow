@@ -30,20 +30,30 @@ sudo chmod +x /usr/local/bin/docker-compose
   sudo ./aws/install
 
 
-# Instalando pip pipx uv para Python 3
+# Instalando  Python 3 e uv
 
-sudo apt install python3-pip -y
-udo snap install astral-uv --classic
-# sudo apt install pipx -y
-# pipx install uv
+ sudo apt install python3-pip -y
+ sudo snap install astral-uv --classic
 
 
+set -e
+BASE=/home/ubuntu/setup/ragflow/docker
+RDS_HOST="ragflow-mysql.cctwsq2oijjs.us-east-1.rds.amazonaws.com"
 
+# Aguarda o setup do RAGFlow estar disponível (AMI pode demorar para montar)
+for i in $(seq 1 30); do
+  [ -f "$BASE" ] && break
+  sleep 10
+done
 
 # Configurando permissão no docker para não ter que ficar usando root
 sudo usermod -aG docker ubuntu
 newgrp docker
 
+
+set -e
+BASE=/home/ubuntu
+cd "$BASE"
 
 git clone https://github.com/infiniflow/ragflow.git
 cd ragflow/
