@@ -15,7 +15,7 @@
 ## Passo 1: Preparar Ambiente Local
 ```bash
 # Clonar repositório
-git clone https://github.com/seu-usuario/ragflow-terraform.git
+git clone https://github.com/Gil135/ragflow-terraform.git
 cd ragflow-terraform
 
 # Verificar estrutura
