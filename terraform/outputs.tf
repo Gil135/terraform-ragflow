@@ -108,11 +108,6 @@ output "ragflow_http_url" {
   value       = "http://${aws_instance.ragflow.public_ip}"
 }
 
-output "ragflow_http_url" {
-  description = "URL HTTP para acessar API-RAGFlow"
-  value       = "http://${aws_instance.ragflow.public_ip}:9380"
-}
-
 output "ragflow_https_url" {
   description = "URL HTTPS para acessar RAGFlow (após configurar SSL)"
   value       = "https://${aws_instance.ragflow.public_ip}"

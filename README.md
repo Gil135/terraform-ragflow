@@ -122,6 +122,33 @@ aws sts get-caller-identity´´
 └── docs/
     ├── TROUBLESHOOTING.md       # Solução de problemas
     ├── ARCHITECTURE.md          # Detalhes da arquitetura
-    └── COMMANDS.md              # Comandos úteis   
+    └── COMMANDS.md              # Comandos úteis       
+🚀 Instalação Rápida1️⃣ Clonar Repositório
+´´
+git clone https://github.com/seu-usuario/ragflow-terraform.git
+cd ragflow-terraform
+´´
+
+ Configurar Terraform
+   
+cd terraform
+
+# Inicializar Terraform
+terraform init
+
+# Validar configuração
+terraform validate
+
+# Formatar código
+terraform fmt -recursive
+
+ Revisar Plano
 
 
+# Ver o que será criado
+terraform plan -out=tfplan
+
+# Output mostrará:
+# - 1 aws_instance (EC2)
+# - 1 aws_security_group
+# - 5 aws_security_group_rule (portas)
