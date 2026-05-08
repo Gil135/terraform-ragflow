@@ -34,10 +34,7 @@ vpc_security_group_ids    = ["sg-02ae2cd21f022a811"]
 capacity_reservation_specification {
   capacity_reservation_preference = "open"
 }
-# cpu_options {
-#   core_count       = 4
-#   threads_per_core = 1
-# }
+
 
  root_block_device {
     delete_on_termination = true

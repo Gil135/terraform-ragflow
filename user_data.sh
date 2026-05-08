@@ -128,10 +128,10 @@ log "RAGFlow clonado com sucesso"
 # 
 # 9. OPÇÃO A: USAR IMAGEM PRÉ-CONSTRUÍDA (RECOMENDADO - RÁPIDO)
 # 
-log "Puxando imagem RAGFlow pré-construída..."
-docker pull infiniflow/ragflow:latest
+# log "Puxando imagem RAGFlow pré-construída..."
+# docker pull infiniflow/ragflow:latest
 
-log "Imagem RAGFlow pronta!"
+# log "Imagem RAGFlow pronta!"
 
 # 
 # ============================================================
