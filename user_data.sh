@@ -2,7 +2,7 @@
 
 # 
 # USER DATA - EC2 Ubuntu para RAGFlow + AWS
-# Com inicialização automática via systemd (VERSÃO FINAL AJUSTADA)
+# Com inicialização automática via systemd 
 # Otimizado para: velocidade, segurança, espaço em disco
 # Tempo estimado: 5-10 minutos
 # 
@@ -130,7 +130,89 @@ cd /home/ubuntu
 git clone --depth 1 https://github.com/infiniflow/ragflow.git
 cd ragflow
 
+
 log "RAGFlow clonado com sucesso"
+
+
+
+LOG_DIR="/home/ubuntu/ragflow-logs-start"
+LOG_FILE="$LOG_DIR/startup.log"
+
+# Criar diretório de logs com permissões corretas
+sudo mkdir -p "$LOG_DIR"
+sudo chown ubuntu:ubuntu "$LOG_DIR"
+chmod 755 "$LOG_DIR"
+
+
+
+
+log() {
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+}
+
+log "=========================================="
+log "Iniciando RAGFlow"
+log "=========================================="
+
+# Aguardar Docker estar pronto (máx 60 segundos)
+log "Aguardando Docker estar pronto..."
+for i in {1..60}; do
+    if docker ps &>/dev/null; then
+        log "✓ Docker está pronto"
+        break
+    fi
+    log "  Tentativa $i/60..."
+    sleep 1
+done
+
+# Verificar se Docker respondeu
+if ! docker ps &>/dev/null; then
+    log "✗ ERRO: Docker não respondeu após 60 segundos"
+    exit 1
+fi
+
+# Navegar para diretório do RAGFlow
+RAGFLOW_DIR="/home/ubuntu/ragflow"
+if [ ! -d "$RAGFLOW_DIR" ]; then
+    log "✗ ERRO: Diretório $RAGFLOW_DIR não encontrado"
+    exit 1
+fi
+
+cd "$RAGFLOW_DIR"
+log "Diretório: $(pwd)"
+
+# Verificar se docker-compose.yml existe no caminho correto
+if [ ! -f "docker/docker-compose.yml" ]; then
+    log "✗ ERRO: docker/docker-compose.yml não encontrado"
+    log "Arquivos disponíveis:"
+    ls -la >> "$LOG_FILE"
+    exit 1
+fi
+
+# Iniciar containers usando "docker compose" (v2 - sem hífen)
+log "Executando: docker compose -f docker/docker-compose.yml up -d"
+docker compose -f docker/docker-compose.yml up -d >> "$LOG_FILE" 2>&1 || {
+    log "✗ ERRO ao iniciar containers"
+    log "Tentando com docker-compose (v1)..."
+    docker-compose -f docker/docker-compose.yml up -d >> "$LOG_FILE" 2>&1 || {
+        log "✗ ERRO: Ambos os comandos falharam"
+        exit 1
+    }
+}
+
+# Aguardar containers estarem prontos
+log "Aguardando containers iniciarem..."
+sleep 10
+
+# Verificar status
+log "Status dos containers:"
+docker ps >> "$LOG_FILE"
+
+log "✓ RAGFlow iniciado com sucesso"
+log "=========================================="
+log "Logs disponíveis em: $LOG_FILE"
+
+exit 0
 
 # 
 # ============================================================
@@ -236,6 +318,7 @@ chmod +x /home/ubuntu/start-ragflow.sh
 chown ubuntu:ubuntu /home/ubuntu/start-ragflow.sh
 
 
+
 log "Script de inicialização criado: /home/ubuntu/start-ragflow.sh"
 
 # 
@@ -245,6 +328,8 @@ log "Script de inicialização criado: /home/ubuntu/start-ragflow.sh"
 # 
 
 log "Criando serviço systemd para inicialização automática..."
+
+
 
 sudo tee /etc/systemd/system/ragflow.service > /dev/null << 'SERVICE_EOF'
 [Unit]
@@ -314,7 +399,7 @@ log ""
 log "📝 COMANDOS ÚTEIS:"
 log "  • Ver status: sudo systemctl status ragflow.service"
 log "  • Ver logs: sudo journalctl -u ragflow.service -f"
-log "  • Ver logs de startup: tail -f /home/ubuntu/ragflow-logs/startup.log"
+log "  • Ver logs de startup: tail -f /home/ubuntu/ragflow-logs-start/startup.log"
 log "  • Parar: sudo systemctl stop ragflow.service"
 log "  • Reiniciar: sudo systemctl restart ragflow.service"
 log ""
