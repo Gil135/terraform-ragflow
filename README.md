@@ -34,35 +34,32 @@ Este projeto automatiza o deployment do **RAGFlow** (plataforma de IA Generativa
 
 ---
 
-## 🏗️ Arquitetura  
-┌─────────────────────────────────────────────────────────┐
-│                   AWS EC2 Instance                      │
-│            (t2.xlarge, 50GB EBS, Ubuntu 22.04)         │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │         Docker Containers                        │  │
-│  ├──────────────────────────────────────────────────┤  │
-│  │  • RAGFlow (porta 9380)                          │  │
-│  │  • Redis (porta 6379)                            │  │
-│  │  • Ollama (porta 11434)                          │  │
-│  └──────────────────────────────────────────────────┘  │
-│                                                         │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │         Serviço systemd                          │  │
-│  │         (ragflow.service)                        │  │
-│  │         Auto-restart on boot                     │  │
-│  └──────────────────────────────────────────────────┘  │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-↓
-Security Group (Firewall)
-↓
-Internet Gateway
-↓
-Usuários  
+## 🏗️ Arquitetura
+```mermaid
+graph TD
+    A["<b>AWS EC2 Instance</b><br/>(t2.xlarge, 50GB EBS, Ubuntu 22.04)"]
+    
+    B["<b>Docker Containers</b><br/>RAGFlow porta 9380<br/>Redis porta 6379<br/>Ollama porta 11434"]
+    
+    C["<b>Serviço systemd</b><br/>ragflow.service<br/>Auto-restart on boot"]
+    
+    D["Security Group<br/>(Firewall)"]
+    E["Internet Gateway"]
+    F["Usuários"]
+    
+    A --> B
+    A --> C
+    A --> D
+    D --> E
+    E --> F
+    
+    style A fill:#FF9900,stroke:#333,color:#000,stroke-width:2px
+    style B fill:#146EB4,stroke:#333,color:#fff,stroke-width:2px
+    style C fill:#27AE60,stroke:#333,color:#fff,stroke-width:2px
+    style D fill:#E74C3C,stroke:#333,color:#fff,stroke-width:2px
+    style E fill:#34495E,stroke:#333,color:#fff,stroke-width:2px
+    style F fill:#8E44AD,stroke:#333,color:#fff,stroke-width:2px
 
----
 
 ## 📦 Pré-requisitos
 
