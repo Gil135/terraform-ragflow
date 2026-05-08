@@ -35,31 +35,30 @@ Este projeto automatiza o deployment do **RAGFlow** (plataforma de IA Generativa
 ---
 
 ## 🏗️ Arquitetura
-```mermaid
-graph TD
-    A["<b>AWS EC2 Instance</b><br/>(t2.xlarge, 50GB EBS, Ubuntu 22.04)"]
-    
-    B["<b>Docker Containers</b><br/>RAGFlow porta 9380<br/>Redis porta 6379<br/>Ollama porta 11434"]
-    
-    C["<b>Serviço systemd</b><br/>ragflow.service<br/>Auto-restart on boot"]
-    
-    D["Security Group<br/>(Firewall)"]
-    E["Internet Gateway"]
-    F["Usuários"]
-    
-    A --> B
-    A --> C
-    A --> D
-    D --> E
-    E --> F
-    
-    style A fill:#FF9900,stroke:#333,color:#000,stroke-width:2px
-    style B fill:#146EB4,stroke:#333,color:#fff,stroke-width:2px
-    style C fill:#27AE60,stroke:#333,color:#fff,stroke-width:2px
-    style D fill:#E74C3C,stroke:#333,color:#fff,stroke-width:2px
-    style E fill:#34495E,stroke:#333,color:#fff,stroke-width:2px
-    style F fill:#8E44AD,stroke:#333,color:#fff,stroke-width:2px
 
+A infraestrutura é composta por:
+
+**1. AWS EC2 Instance** (t2.xlarge, 50GB EBS, Ubuntu 22.04)
+- **Docker Containers:**
+  - RAGFlow (porta 9380)
+  - Redis (porta 6379)
+  - Ollama (porta 11434)
+- **Serviço systemd** (ragflow.service)
+  - Auto-restart on boot
+  - Gerenciamento automático
+
+**2. Security Group** (Firewall)
+- Controla acesso às portas
+- Regras de entrada/saída configuradas
+
+**3. Internet Gateway**
+- Conecta a instância à internet pública
+- Permite acesso dos usuários
+
+**4. Usuários**
+- Acessam RAGFlow via HTTP/HTTPS (porta 80)
+
+---
 
 ## 📦 Pré-requisitos
 
@@ -83,7 +82,11 @@ aws --version
 
 # Git
 git --version
-# Output: git version 2.x.xConfigurar AWS CLIbash1234567891011# Configurar credenciais
+# Output: git version 2.x.x  
+
+Configurar AWS CLI  
+
+# Configurar credenciais
 aws configure
 
 # Inserir:
@@ -93,7 +96,11 @@ aws configure
 # Default output format: json
 
 # Verificar configuração
-aws sts get-caller-identity📁 Estrutura do Projetotextragflow-terraform/
+aws sts get-caller-identity  
+```
+📁 Estrutura do Projeto
+ ```
+ ragflow-terraform/
 ├── README.md                    # Este arquivo
 ├── DEPLOYMENT.md                # Guia passo-a-passo
 ├── .gitignore                   # Ignorar arquivos sensíveis
@@ -111,26 +118,54 @@ aws sts get-caller-identity📁 Estrutura do Projetotextragflow-terraform/
 └── docs/
     ├── TROUBLESHOOTING.md       # Solução de problemas
     ├── ARCHITECTURE.md          # Detalhes da arquitetura
-    └── COMMANDS.md              # Comandos úteis🚀 Instalação Rápida1️⃣ Clonar Repositóriobash12git clone https://github.com/seu-usuario/ragflow-terraform.git
-cd ragflow-terraform2️⃣ Configurar Terraformbash12345678910cd terraform
+    └── COMMANDS.md              # Comandos úteis  
+```
+## 🚀 Instalação Rápida  
+
+1️⃣ Clonar Repositório  
+
+git clone https://github.com/Gil135/ragflow-terraform.git
+cd ragflow-terraform  
+
+2️⃣ Configurar Terraform  
+
+cd terraform
 
 # Inicializar Terraform
+```
 terraform init
 
+```
 # Validar configuração
+```
 terraform validate
 
 # Formatar código
-terraform fmt -recursive3️⃣ Revisar Planobash1234567# Ver o que será criado
+terraform fmt -recursive  
+```
+3️⃣ Revisar Plano  
+```
+# Ver o que será criado
 terraform plan -out=tfplan
 
 # Output mostrará:
 # - 1 aws_instance (EC2)
 # - 1 aws_security_group
-# - 5 aws_security_group_rule (portas)4️⃣ Aplicar Configuraçãobash1234# Criar recursos na AWS
+# - 5 aws_security_group_rule (portas)  
+ 
+```
+4️⃣ Aplicar Configuração  
+```
+# Criar recursos na AWS
 terraform apply tfplan
 
-# Aguarde 3-5 minutos para o deployment completar5️⃣ Acessar a Instânciabash1234567891011# Obter IP público
+# Aguarde 3-5 minutos para o deployment completar  
+# Criar recursos na AWS
+
+```
+5️⃣ Acessar a Instância   
+```
+# Obter IP público
 terraform output instance_public_ip
 
 # Conectar via SSH
@@ -141,3 +176,17 @@ sudo systemctl status ragflow.service
 
 # Ver logs
 sudo journalctl -u ragflow.service -f
+
+```
+✅ Próximos Passos  
+
+ Ler DEPLOYMENT.md para detalhes completos  
+ Consultar TROUBLESHOOTING.md em caso de erros  
+ Revisar ARCHITECTURE.md para entender a infraestrutura  
+ Executar comandos em COMMANDS.md  
+
+📞 SuportePara dúvidas ou problemas, consulte a documentação ou abra uma issue no repositório.   
+
+
+Licença: MIT  
+Mantido por: Gilvan
