@@ -15,22 +15,18 @@ resource "aws_instance" "ragflow_instance" {
   region                               = "us-east-1"
   secondary_private_ips                = []
   security_groups                      = ["SG RAGFlow"]
-  # iam_instance_profile        = "role-acesso-ssm"
-
-  # depends_on = [
-  #   aws_iam_instance_profile.role-acesso-ssm
-  # ]
+  iam_instance_profile                 = "role-acesso-ssm"
 
   
 tags = {
   ambiente ="DEV"
-  Name = "Ragflow-DEV"
+  Name = "Ragflow-Instance"
   
 }
 
 
 tenancy                   = "default"
-user_data                 = base64encode(file("${path.module}/user_data_base64.sh")) # Instala Docker + RAGFlow v0.24.0
+user_data                 = file("${path.module}/user_data.sh") # Instala Docker + RAGFlow v0.24.0
 volume_tags               = null
 vpc_security_group_ids    = ["sg-02ae2cd21f022a811"]
 
