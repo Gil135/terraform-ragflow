@@ -98,7 +98,7 @@ aws configure
 # Verificar configuração
 aws sts get-caller-identity  
 ```
-📁 Estrutura do Projeto
+## 📁 Estrutura do Projeto
  ```
  ragflow-terraform/
 ├── README.md                    # Este arquivo
@@ -178,7 +178,7 @@ sudo systemctl status ragflow.service
 sudo journalctl -u ragflow.service -f
 
 ```
-✅ Próximos Passos  
+## ✅ Próximos Passos  
 
  Ler DEPLOYMENT.md para detalhes completos  
  Consultar TROUBLESHOOTING.md em caso de erros  
