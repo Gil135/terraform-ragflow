@@ -11,12 +11,18 @@
 
 ## 📋 Índice
 
-1. [Visão Geral](#visão-geral)
-2. [Arquitetura](#arquitetura)
-3. [Pré-requisitos](#pré-requisitos)
-4. [Estrutura do Projeto](#estrutura-do-projeto)
-5. [Instalação Rápida](#instalação-rápida)
-6. [Próximos Passos](#próximos-passos)
+- [RAGFlow - Deployment Automático em AWS EC2](#ragflow---deployment-automático-em-aws-ec2)
+  - [📋 Índice](#-índice)
+  - [🎯 Visão Geral](#-visão-geral)
+  - [🏗️ Arquitetura](#️-arquitetura)
+  - [📦 Pré-requisitos](#-pré-requisitos)
+    - [Obrigatório](#obrigatório)
+    - [Verificar Instalação](#verificar-instalação)
+  - [📁 Estrutura do Projeto](#-estrutura-do-projeto)
+  - [🚀 Instalação Rápida](#-instalação-rápida)
+- [Inicializar Terraform](#inicializar-terraform)
+- [Validar configuração](#validar-configuração)
+  - [✅ Próximos Passos](#-próximos-passos)
 
 ---
 
@@ -124,7 +130,7 @@ aws sts get-caller-identity
 
 1️⃣ Clonar Repositório  
 
-git clone https://github.com/Gil135/ragflow-terraform.git
+git clone https://github.com/Gil135/terraform-ragflow
 cd ragflow-terraform  
 
 2️⃣ Configurar Terraform  
