@@ -2,13 +2,12 @@
 
 # 
 # USER DATA - EC2 Ubuntu para RAGFlow + AWS
-# Com inicialização automática via systemd
+# Com inicialização automática via systemd (VERSÃO FINAL AJUSTADA)
 # Otimizado para: velocidade, segurança, espaço em disco
 # Tempo estimado: 5-10 minutos
 # 
 
 set -e  # Parar em qualquer erro
-set -u  # Parar se variável não definida
 
 # Cores para output
 RED='\033[0;31m'
@@ -16,8 +15,13 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Arquivo de log
-LOG_FILE="/var/log/ragflow-setup.log"
+# Arquivo de log (em /home/ubuntu, sem necessidade de sudo)
+LOG_DIR="/home/ubuntu/ragflow-logs"
+LOG_FILE="$LOG_DIR/setup.log"
+
+# Criar diretório de logs com permissões corretas
+mkdir -p "$LOG_DIR"
+chmod 755 "$LOG_DIR"
 
 # Função para logging
 log() {
@@ -37,8 +41,8 @@ warn() {
 # 1. ATUALIZAR SISTEMA
 # 
 log "Atualizando sistema..."
-sudo apt-get update -qq
-sudo apt-get upgrade -y -qq
+sudo apt-get update -qq || warn "apt-get update falhou"
+sudo apt-get upgrade -y -qq || warn "apt-get upgrade falhou"
 
 # 
 # 2. INSTALAR DOCKER (versão estável)
@@ -66,6 +70,9 @@ log "Ativando Docker no boot..."
 sudo systemctl enable docker.service
 sudo systemctl enable containerd.service
 sudo systemctl start docker.service
+
+# Aguardar Docker estar pronto
+sleep 5
 
 # 
 # 4. INSTALAR DOCKER COMPOSE v2 (ATUALIZADO)
@@ -126,22 +133,14 @@ cd ragflow
 log "RAGFlow clonado com sucesso"
 
 # 
-# 9. OPÇÃO A: USAR IMAGEM PRÉ-CONSTRUÍDA (RECOMENDADO - RÁPIDO)
-# 
-# log "Puxando imagem RAGFlow pré-construída..."
-# docker pull infiniflow/ragflow:latest
-
-# log "Imagem RAGFlow pronta!"
-
-# 
 # ============================================================
-# 10. CRIAR SCRIPT DE INICIALIZAÇÃO AUTOMÁTICA (NOVO)
+# 9. CRIAR SCRIPT DE INICIALIZAÇÃO AUTOMÁTICA
 # ============================================================
 # 
 
 log "Criando script de inicialização automática..."
 
-sudo tee /home/ubuntu/start-ragflow.sh > /dev/null << 'SCRIPT_EOF'
+cat > /home/ubuntu/start-ragflow.sh << 'SCRIPT_EOF'
 #!/bin/bash
 
 # 
@@ -152,49 +151,74 @@ sudo tee /home/ubuntu/start-ragflow.sh > /dev/null << 'SCRIPT_EOF'
 
 set -e
 
-LOG_FILE="/var/log/ragflow-startup.log"
+LOG_DIR="/home/ubuntu/ragflow-logs-start"
+LOG_FILE="$LOG_DIR/startup.log"
+
+# Criar diretório de logs com permissões corretas
+sudo mkdir -p "$LOG_DIR"
+sudo chown ubuntu:ubuntu "$LOG_DIR"
+chmod 755 "$LOG_DIR"
+
+
+
 
 log() {
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
 }
 
 log "=========================================="
 log "Iniciando RAGFlow"
 log "=========================================="
 
-# Aguardar Docker estar pronto (máx 30 segundos)
+# Aguardar Docker estar pronto (máx 60 segundos)
 log "Aguardando Docker estar pronto..."
-for i in {1..30}; do
+for i in {1..60}; do
     if docker ps &>/dev/null; then
         log "✓ Docker está pronto"
         break
     fi
-    log "  Tentativa $i/30..."
+    log "  Tentativa $i/60..."
     sleep 1
 done
 
 # Verificar se Docker respondeu
 if ! docker ps &>/dev/null; then
-    log "✗ ERRO: Docker não respondeu após 30 segundos"
+    log "✗ ERRO: Docker não respondeu após 60 segundos"
     exit 1
 fi
 
 # Navegar para diretório do RAGFlow
-if [ ! -d "/home/ubuntu/ragflow/docker" ]; then
-    log "✗ ERRO: Diretório /home/ubuntu/ragflow/docker não encontrado"
+RAGFLOW_DIR="/home/ubuntu/ragflow"
+if [ ! -d "$RAGFLOW_DIR" ]; then
+    log "✗ ERRO: Diretório $RAGFLOW_DIR não encontrado"
     exit 1
 fi
 
-cd /home/ubuntu/ragflow/docker
+cd "$RAGFLOW_DIR"
 log "Diretório: $(pwd)"
 
-# Iniciar containers
-log "Executando: docker compose -f docker-compose.yml up -d"
-docker compose -f docker-compose.yml up -d >> "$LOG_FILE" 2>&1
+# Verificar se docker-compose.yml existe no caminho correto
+if [ ! -f "docker/docker-compose.yml" ]; then
+    log "✗ ERRO: docker/docker-compose.yml não encontrado"
+    log "Arquivos disponíveis:"
+    ls -la >> "$LOG_FILE"
+    exit 1
+fi
+
+# Iniciar containers usando "docker compose" (v2 - sem hífen)
+log "Executando: docker compose -f docker/docker-compose.yml up -d"
+docker compose -f docker/docker-compose.yml up -d >> "$LOG_FILE" 2>&1 || {
+    log "✗ ERRO ao iniciar containers"
+    log "Tentando com docker-compose (v1)..."
+    docker-compose -f docker/docker-compose.yml up -d >> "$LOG_FILE" 2>&1 || {
+        log "✗ ERRO: Ambos os comandos falharam"
+        exit 1
+    }
+}
 
 # Aguardar containers estarem prontos
 log "Aguardando containers iniciarem..."
-sleep 5
+sleep 10
 
 # Verificar status
 log "Status dos containers:"
@@ -202,16 +226,21 @@ docker ps >> "$LOG_FILE"
 
 log "✓ RAGFlow iniciado com sucesso"
 log "=========================================="
+log "Logs disponíveis em: $LOG_FILE"
 
 exit 0
 SCRIPT_EOF
 
-sudo chmod +x /home/ubuntu/start-ragflow.sh
+# Dar permissão de execução
+chmod +x /home/ubuntu/start-ragflow.sh
+chown ubuntu:ubuntu /home/ubuntu/start-ragflow.sh
+
+
 log "Script de inicialização criado: /home/ubuntu/start-ragflow.sh"
 
 # 
 # ============================================================
-# 11. CRIAR SERVIÇO SYSTEMD (NOVO)
+# 10. CRIAR SERVIÇO SYSTEMD
 # ============================================================
 # 
 
@@ -228,7 +257,7 @@ Documentation=https://github.com/infiniflow/ragflow
 Type=oneshot
 User=ubuntu
 Group=ubuntu
-WorkingDirectory=/home/ubuntu/ragflow/docker
+WorkingDirectory=/home/ubuntu/ragflow
 ExecStart=/home/ubuntu/start-ragflow.sh
 RemainAfterExit=yes
 StandardOutput=journal
@@ -249,7 +278,7 @@ log "Serviço systemd criado: /etc/systemd/system/ragflow.service"
 
 # 
 # ============================================================
-# 12. ATIVAR SERVIÇO PARA BOOT AUTOMÁTICO (NOVO)
+# 11. ATIVAR SERVIÇO PARA BOOT AUTOMÁTICO
 # ============================================================
 # 
 
@@ -261,7 +290,7 @@ log "Serviço ragflow ativado para boot automático"
 
 # 
 # ============================================================
-# 13. RESUMO FINAL
+# 12. RESUMO FINAL
 # ============================================================
 # 
 
@@ -285,19 +314,20 @@ log ""
 log "📝 COMANDOS ÚTEIS:"
 log "  • Ver status: sudo systemctl status ragflow.service"
 log "  • Ver logs: sudo journalctl -u ragflow.service -f"
+log "  • Ver logs de startup: tail -f /home/ubuntu/ragflow-logs/startup.log"
 log "  • Parar: sudo systemctl stop ragflow.service"
 log "  • Reiniciar: sudo systemctl restart ragflow.service"
-log "  • Logs de startup: cat /var/log/ragflow-startup.log"
 log ""
 log "📍 LOCALIZAÇÃO DOS ARQUIVOS:"
 log "  • Script de startup: /home/ubuntu/start-ragflow.sh"
 log "  • Serviço systemd: /etc/systemd/system/ragflow.service"
-log "  • Logs de setup: /var/log/ragflow-setup.log"
-log "  • Logs de startup: /var/log/ragflow-startup.log"
+log "  • Logs de setup: /home/ubuntu/ragflow-logs/setup.log"
+log "  • Logs de startup: /home/ubuntu/ragflow-logs/startup.log"
+log "  • RAGFlow: /home/ubuntu/ragflow"
 log ""
 log "🌐 ACESSO:"
 log "  • RAGFlow estará disponível em: http://seu-ip-ec2"
-log "  • Após a instância iniciar completamente (~2-3 min)"
+log "  • Após a instância iniciar completamente (~3-5 min)"
 log ""
 log "⏱️  Tempo total de setup: ~5-10 minutos"
 log ""
